@@ -1,7 +1,7 @@
 # CI, PRUEBAS AUTOMÁTICAS Y RAMAS
 #   - El pipeline ya NO corre directo sobre main. Corre sobre pull_request
 #   - Las pruebas unitarias se ejecutan de forma obligatoria
-#
+
 
 name: Deploy mejorado [CI, pruebas automáticas y manejo de ramas]
 
