@@ -1,23 +1,36 @@
-# FASE INICIAL
-# Este pipeline funciona, despliega rápido, peero... tiene problemas de seguridad graves.
-# NO usar como referencia. Es el "antes" que vamos a ir corrigiendo.
-# Problemas presentes:
-#   1. Se dispara directo en push a main: cualquiera con permiso de push despliega a produccion sin revision
-#   2. `permissions: write-all`: el token del workflow (GITHUB_TOKEN) tiene permisos de escritura totales sobre el repo.
-#       Si el pipeline se ve comprometido, por ejemplo por un atacante, este hereda esos permisos.
-#   3. `actions/checkout@v2`: tag flotante. Puede re-apuntar a un commit distinto en cualquier momento
-#   4. `./mvnw package -DskipTests`: se salta las pruebas a proposito. Nada impide que codigo roto llegue a produccion.
+# CI, PRUEBAS AUTOMÁTICAS Y RAMAS
+#   - El pipeline ya NO corre directo sobre main. Corre sobre pull_request
+#   - Las pruebas unitarias se ejecutan de forma obligatoria
 
-name: Deploy (INSEGURO)
+name: Deploy mejorado [CI, pruebas automáticas y manejo de ramas]
 
 on:
-  push:
+  pull_request:
     branches: [main]
 
 permissions: write-all
 
 jobs:
+  ci-tests:
+    name: ci-tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del codigo
+        uses: actions/checkout@v4
+
+      - name: Configurar Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      - name: Ejecutar pruebas unitarias
+        run: ./mvnw test
+
   build-and-deploy:
+    name: Empaquetado y despliegue
+    needs: ci-tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout del código
